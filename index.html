@@ -444,6 +444,8 @@
     }
     th.sort-active { background: #c4b29b; color: #1a130d; }
     th.sort-active .sort-ind { opacity: 1; color: #4e3e2e; }
+    th.no-sort { cursor: default; }
+    th.no-sort:hover { background: #d9cbbc; color: #2d241d; }
 
     td {
         padding: 0.5rem 0.6rem; border-bottom: 1px solid #ede3d8;
@@ -461,6 +463,12 @@
         font-family: 'Courier New', monospace;
         font-weight: 700;
         color: var(--accent);
+    }
+    .row-num {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        color: #9b8b7c;
+        font-size: 0.8rem;
     }
     .hangeul-cell {
         font-weight: 600; font-size: 1rem; color: #3c2e22;
@@ -598,7 +606,7 @@
         <div class="info-card topn">
             <div class="topn-head">
                 <h4>Top-N-Anteil</h4>
-                <span class="topn-share" id="topNShare">0,0000 %</span>
+                <span class="topn-share" id="topNShare">0,0000 ‰</span>
             </div>
             <div class="topn-controls">
                 <input type="range" id="topNSlider" min="1" max="300" value="10" step="1">
@@ -628,6 +636,7 @@
             <table>
                 <thead>
                     <tr id="tableHeadRow">
+                        <th class="no-sort">#</th>
                         <th data-sort="nr">Rang <span class="sort-ind">▼</span></th>
                         <th data-sort="hangeul">Hangeul <span class="sort-ind">▼</span></th>
                         <th data-sort="hanja">Hanja<span class="sort-ind">▼</span></th>
@@ -1150,11 +1159,12 @@
         const sorted = getSorted();
         const frag = document.createDocumentFragment();
 
-        sorted.forEach((n) => {
+        sorted.forEach((n, i) => {
             const idx = nameList.indexOf(n);
             const tr = document.createElement('tr');
             tr.dataset.idx = String(idx);
             tr.innerHTML = `
+                <td class="row-num">${i + 1}</td>
                 <td class="nr-cell">${n.nr.toLocaleString('de-DE')}</td>
                 <td class="hangeul-cell">${n.hangeul}</td>
                 <td class="hanja-cell">${n.hanja}</td>
@@ -1275,8 +1285,8 @@
         });
         const n = Math.min(currentTopN, sorted.length);
         const sum = sorted.slice(0, n).reduce((s, x) => s + x.population, 0);
-        const share = (sum / totalPopulation) * 100;
-        topNShare.textContent = share.toFixed(4).replace('.', ',') + ' %';
+        const sharePromille = (sum / totalPopulation) * 1000;
+        topNShare.textContent = sharePromille.toFixed(4).replace('.', ',') + ' ‰';
         topNShareSub.textContent = `Anteil der Top ${n} an Gesamtbevölkerung`;
     }
 
@@ -1355,7 +1365,7 @@
     function initSorting() {
         tableHeadRow.addEventListener('click', e => {
             const th = e.target.closest('th[data-sort]');
-            if (!th) return;
+            if (!th || th.classList.contains('no-sort')) return;
             const key = th.dataset.sort;
             if (currentSort.key === key) {
                 currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
